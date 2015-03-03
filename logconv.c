@@ -1,6 +1,6 @@
 /* Reads several files, gzipped or not, and if it is in IIS format it detects
  * the fields by the #Fields: header and outputs in combined format
- * Copyright (c) 2009-2015 Fredrik Rambris <fredrik@rambris.com>. All rights reserved
+ * Copyright (c) 2009-2015 Fredrik Rambris <fredrik.rambris@it.cdon.com>. All rights reserved
  */
 
 #include <stdio.h>
@@ -66,6 +66,7 @@ void convert_log_file(const char *path, const char *host)
 	char *bname=strrchr(path, '/');
 	if(bname==NULL) bname=(char *)path;
 	else bname++;
+	char nl='\0';
 	
 	/* Read local time to be able to set correct UTC offset in output*/
 	time(&tt);
@@ -82,6 +83,7 @@ void convert_log_file(const char *path, const char *host)
 				time(&tt);
 				fprintf(stderr, "     \r%s: %d rows read (%d rows per second)", bname, rcount, rcount-lcount);
 				lcount=rcount;
+				nl='\n';
 			}
 			/* Remove trailing whitespace and skip empty rows */
 			trim(buf);
@@ -140,7 +142,7 @@ void convert_log_file(const char *path, const char *host)
 				if(c<12) continue;
 
 				/* If we have cs-host and we have specified -host and cs-host != host then skip the line */
-				if(c>12 && host && strcmp(cols[pos[12]], host)) continue;
+				if(c>12 && host && cols[pos[12]] && strcmp(cols[pos[12]], host)) continue;
 
 				/* Parse time and date and convert it to combined format */
 				sprintf(d, "%s %s", cols[pos[0]], cols[pos[1]]);
@@ -158,7 +160,7 @@ void convert_log_file(const char *path, const char *host)
 			}
 		}
 		gzclose(f);
-		fprintf(stderr, "\n");
+		if(nl) fprintf(stderr, "\n");
 	}
 }
 
